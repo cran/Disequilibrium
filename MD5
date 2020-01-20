@@ -1,0 +1,17 @@
+a589364dc37a72ff099b06da29b110e3 *DESCRIPTION
+2cc59bb831523d61e9f477d664b238a0 *NAMESPACE
+562eea25152ff513adc463969482b0da *R/Disequilibrium.R
+f58805a113cef87e98d0c248e20d6240 *man/DE.Rd
+6f0a13c41d44dac0f2c875cbb2242d04 *man/DlhoodDatanhrho.Rd
+5a6ec00e0e970f51c25720b2beff48ab *man/DlhoodDbeta1.Rd
+ecde8b0227411a982c49a7434f01b3b6 *man/DlhoodDlogsigma11.Rd
+63f60338c5651f510805ae0e2f617b02 *man/DllhoodDatanhrho.Rd
+0e14e198c63565e3a9ed904226da5683 *man/DllhoodDbeta1.Rd
+7708a57045144f78dcb2a1d0dd22c8dd *man/DllhoodDlogsigma11.Rd
+1a146300cbf6b54e572707e5927931e4 *man/GradientDE.Rd
+6f43d7f291c4f955b09762b26f34ce4a *man/LLikelihoodDE.Rd
+4168f77264ae9e2ee8c861e782af1fcf *man/TransformSigma_PDtoR3.Rd
+395f9aa7f3f448ce245748604bbd08b8 *man/TransformSigma_R3toPD.Rd
+f69070f398f9cf905e711248ec151b7a *man/nGradientDE.Rd
+3900908be1dc6f325fa7f56ef1095a3d *man/predict.DE.Rd
+e6c7ea1daba84115d7919671db09c686 *man/summary.DE.Rd
