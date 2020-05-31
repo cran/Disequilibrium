@@ -2,9 +2,10 @@
 % Please edit documentation in R/Disequilibrium.R
 \name{LLikelihoodDE}
 \alias{LLikelihoodDE}
-\title{Negative log likelihood of market in disequilibrium model}
+\title{Log likelihood of market in disequilibrium model}
 \usage{
-LLikelihoodDE(theta, Y, X, ensurePD = TRUE, summed = TRUE)
+LLikelihoodDE(theta, Y, X, transformR3toPD = TRUE, summed = TRUE,
+  MaskRho = FALSE)
 }
 \arguments{
 \item{theta}{A vector of parameter values to obtain the gradient at. The
@@ -18,19 +19,23 @@ and variance of equation 2.}
 design matrix for equation 1 and the second element is a \eqn{N \times k_2}{N x k[2]}
 design matrix for equation 2.}
 
-\item{ensurePD}{A logical  to determine if the covariance matrix is
-transformed to an unrestricted 3 dimension real space (\code{ensurePD = TRUE})
-or not (\code{ensurePD = FALSE}).}
+\item{transformR3toPD}{A logical  to determine if the covariance matrix is
+transformed to an unrestricted 3 dimension real space (\code{transformR3toPD = TRUE})
+or not (\code{transformR3toPD = FALSE}).}
 
 \item{summed}{A logical to determine if the negative log likelihood values
 are summed over observations.}
+
+\item{MaskRho}{A logical or numeric to determine if the correlation is masked.
+A value of FALSE means the correlation is not fixed. A value between -1 and 1 will fix the
+correlation to that value.}
 }
 \value{
 A scalar value of the negative log likelihood if \code{summed = TRUE},
 else a \eqn{N}{N} length vector of negative log likelihood observations.
 }
 \description{
-Negative log likelihood of market in disequilibrium model
+Log likelihood of market in disequilibrium model
 }
 \examples{
 set.seed(1775)

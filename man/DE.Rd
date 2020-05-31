@@ -45,8 +45,42 @@ An object of class 'DE' is returned as a list with the following components:
 
 \item{Xbeta2}{The predicted outcome for each observation in equation 2 using the parameters estimated in \code{par}.}
 
+\item{Y}{A vector of the response (quantity) values.}
+
+\item{X}{A list of the design matricies for the two equations.}
+
 \item{hessian}{A numerical approximation to the Hessian matrix of the likelihood function at the estimated parameter values.
  The Hessian is returned even if it is not requested.}
+
+\item{vcov}{The variance covariance matrix of the estimates in \code{par}.}
+
+\item{MaskRho}{The value of \code{MaskRho} used.}
+
+}
+
+The object of class 'DE' has the following attributes:
+
+\describe{
+
+\item{originalNamesX1}{The original names of the covariates for equation 1 specified in \code{formula}.}
+
+\item{originalNamesX2}{The original names of the covariates for equation 2 specified in \code{formula}.}
+
+\item{namesX1}{The names of the covariates for equation 1 to be used in the \code{summary.DE} function.
+ This is equivalent to \code{paste0(originalNamesX1, Equation1Name)}.}
+
+\item{namesX2}{The names of the covariates for equation 2 to be used in the \code{summary.DE} function.
+ This is equivalent to \code{paste0(originalNamesX2, Equation2Name)}.}
+
+\item{namesSigma}{The names of the variance-covariance matrix parameters to be used in the \code{summary.DE} function.}
+
+\item{Equation1Name}{The user-specified name of equation 1.}
+
+\item{Equation2Name}{The user-specified name of equation 2.}
+
+\item{betaN1}{The number of coefficient and slope parameters to be estimated in equation 1.}
+
+\item{betaN2}{The number of coefficient and slope parameters to be estimated in equation 2.}
 
 }
 }
@@ -108,38 +142,16 @@ The \code{control} argument is a list that can supply any of the following compo
 \item{na.action}{A function indicating what happens when data contains NAs. The default is \link{na.omit}.
  The only other possible value is \link{na.fail}.}
 
-\item{ensurePD}{A logical. If TRUE, the covariance matrix will be manually converted to a
+\item{transformR3toPD}{A logical. If TRUE, the covariance matrix will be manually converted to a
  positive definite matrix for optimization. The default is TRUE.}
 
 \item{Equation1Name}{A string name for the first equation. The default is "_1".}
 
 \item{Equation2Name}{A string name for the second equation. The default is "_2".}
 
-}
-
-An object of class 'DE' is returned as a list with the following attributes:
-
-\describe{
-
-\item{originalNamesX1}{The original names of the covariates for equation 1 specified in \code{formula}.}
-
-\item{originalNamesX2}{The original names of the covariates for equation 2 specified in \code{formula}.}
-
-\item{namesX1}{The names of the covariates for equation 1 to be used in the \code{summary.DE} function.
- This is equivalent to \code{paste0(originalNamesX1, Equation1Name)}.}
-
-\item{namesX2}{The names of the covariates for equation 2 to be used in the \code{summary.DE} function.
- This is equivalent to \code{paste0(originalNamesX2, Equation2Name)}.}
-
-\item{namesSigma}{The names of the variance-covariance matrix parameters to be used in the \code{summary.DE} function.}
-
-\item{Equation1Name}{The user-specified name of equation 1.}
-
-\item{Equation2Name}{The user-specified name of equation 2.}
-
-\item{betaN1}{The number of coefficient and slope parameters to be estimated in equation 1.}
-
-\item{betaN2}{The number of coefficient and slope parameters to be estimated in equation 2.}
+\item{MaskRho}{A logical or numeric to determine if the correlation is masked.
+A value of FALSE means the correlation is not fixed. A value between -1 and 1 will fix the
+correlation to that value. The default is FALSE. A free correlation parameter can be numerically unstable, use with caution.}
 
 }
 }
@@ -164,7 +176,7 @@ eps2 = eps[,2]
 Y1 = X1 \%*\% beta01 + eps1
 Y2 = X2 \%*\% beta02 + eps2
 Y = pmin(Y1,Y2)
-df = data.frame(Y = Y, X1 = X1, X2 = X2)
+df = data.frame(Y = Y, X1 = Xgen[,1], X2 = Xgen[,2])
 
 results = DE(formula = Y ~ X1 | X2, data = df)
 
@@ -172,7 +184,7 @@ str(results)
 
 }
 \references{
-\cite{Gourieroux, C. (2000). Econometrics of Qualitative Dependent Variables (Themes in Modern Econometrics) (P. Klassen, Trans.). Cambridge: Cambridge University Press. doi:10.1017/CBO9780511805608}
+\cite{Gourieroux, C. (2000). Econometrics of Qualitative Dependent Variables (Themes in Modern Econometrics) (P. Klassen, Trans.). Cambridge: Cambridge University Press. http://doi.org/10.1017/CBO9780511805608}
 
-\cite{Maddala, G. (1983). Limited-Dependent and Qualitative Variables in Econometrics (Econometric Society Monographs). Cambridge: Cambridge University Press. doi:10.1017/CBO9780511810176}
+\cite{Maddala, G. (1983). Limited-Dependent and Qualitative Variables in Econometrics (Econometric Society Monographs). Cambridge: Cambridge University Press. http://doi.org/10.1017/CBO9780511810176}
 }

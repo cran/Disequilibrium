@@ -4,10 +4,12 @@
 \alias{summary.DE}
 \title{Summary method for class 'DE'}
 \usage{
-\method{summary}{DE}(object, ...)
+\method{summary}{DE}(object, robust = FALSE, ...)
 }
 \arguments{
 \item{object}{An object of class \code{DE} for which a summary is desired.}
+
+\item{robust}{A logical determining if robust standard errors should be used. If true standard errors are from sandwich::sandwich, else hessian.}
 
 \item{...}{Unused}
 }
@@ -50,7 +52,7 @@ eps2 = eps[,2]
 Y1 = X1 \%*\% beta01 + eps1
 Y2 = X2 \%*\% beta02 + eps2
 Y = pmin(Y1,Y2)
-df = data.frame(Y = Y, X1 = X1, X2 = X2)
+df = data.frame(Y = Y, X1 = Xgen[,1], X2 = Xgen[,2])
 
 results = DE(formula = Y ~ X1 | X2, data = df)
 

@@ -4,7 +4,7 @@
 \alias{nGradientDE}
 \title{Negative gradient of log likelihood with respect to all parameters}
 \usage{
-nGradientDE(theta, Y, X, summed = TRUE)
+nGradientDE(theta, Y, X, summed = TRUE, MaskRho = FALSE)
 }
 \arguments{
 \item{theta}{A vector of parameter values to obtain the gradient at. The
@@ -19,6 +19,10 @@ design matrix for equation 1 and the second element is a \eqn{N \times k_2}{N x 
 design matrix for equation 2.}
 
 \item{summed}{A logical to determine if gradient values are summed over observations.}
+
+\item{MaskRho}{A logical or numeric to determine if the correlation is masked.
+A value of FALSE means the correlation is not fixed. A value between -1 and 1 will fix the
+correlation to that value.}
 }
 \value{
 A \eqn{(k_1 + k_2 + 3)}{(k[1] + k[2] + 3)} dimension vector of

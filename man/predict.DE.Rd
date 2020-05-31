@@ -27,7 +27,7 @@ A data frame is returned.  The columns are:
 \item{Min(Y_1,Y_2)}{The minimum of \code{Y_1} and \code{Y_2}.}
 
 \item{Prob(Y_2>Y_1)}{The probability that the outcome variable in equation 2 is greater than the outcome
-variable in equation 1.  This is the probability that \code{Y_1} is the observed quantity.}
+variable in equation 1.  This is the probability that \code{Y_1} is the observed quantity. This probability does not account for estimation uncertainty. Also note that all predictions are unconditional on the observed quantity.}
 
 }
 }
@@ -55,7 +55,7 @@ eps2 = eps[,2]
 Y1 = X1 \%*\% beta01 + eps1
 Y2 = X2 \%*\% beta02 + eps2
 Y = pmin(Y1,Y2)
-df = data.frame(Y = Y, X1 = X1, X2 = X2)
+df = data.frame(Y = Y, X1 = Xgen[,1], X2 = Xgen[,2])
 
 results = DE(formula = Y ~ X1 | X2, data = df)
 

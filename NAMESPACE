@@ -1,3 +1,7 @@
 exportPattern("^[[:alpha:]]+")
-S3method(predict, DE)
+S3method(stats::predict, DE)
 S3method(summary, DE)
+S3method(stats::nobs, DE)
+S3method(stats::residuals, DE)
+S3method(stats::vcov, DE)
+S3method(sandwich::estfun, DE)

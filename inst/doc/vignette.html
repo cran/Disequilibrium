@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<meta name="author" content="Michael Guggisberg and Nate Latshaw" />
+
+<meta name="date" content="2020-05-30" />
+
+<title>Disequilibrium: Model for markets in disequilibrium</title>
+
+
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css" data-origin="pandoc">
+a.sourceLine { display: inline-block; line-height: 1.25; }
+a.sourceLine { pointer-events: none; color: inherit; text-decoration: inherit; }
+a.sourceLine:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+a.sourceLine { text-indent: -1em; padding-left: 1em; }
+}
+pre.numberSource a.sourceLine
+  { position: relative; left: -4em; }
+pre.numberSource a.sourceLine::before
+  { content: attr(title);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; pointer-events: all; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {  }
+@media screen {
+a.sourceLine::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    for (var j = 0; j < rules.length; j++) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') continue;
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#header {
+text-align: center;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Disequilibrium: Model for markets in disequilibrium</h1>
+<h4 class="author">Michael Guggisberg and Nate Latshaw</h4>
+<h4 class="date">2020-05-30</h4>
+
+
+
+<div id="introduction" class="section level2">
+<h2>Introduction</h2>
+<p>The first study on a market in disequilibrium was Fair and Jaffee (1972) studying the supply and demand of housing starts. Soon followed many econometric refinements and extensions to the new field of disequilibrium econometrics (see the bibliography for small list).<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a> Two good summaries of the literature are Maddala (1983) and Gourieroux (2000). Maddala and Nelson (1974) present Full Information Maximum Likelihood (FIML) estimators for four Disequilblirium models. This package currently supports estimating the first model. The model implemented in this package is not implemented in any other package currently on CRAN to the best knowledge of the authors. However, there are other packages to implement similar models such as sampleSelection, censReg, AER, and MCMCpack.</p>
+<p>The market in disequilibrium model is defined as follows. Let <span class="math inline">\(i\)</span> denote the <span class="math inline">\(i\)</span>th observation which takes values from <span class="math inline">\(1\)</span> to <span class="math inline">\(N\)</span>, <span class="math inline">\(X_1\)</span> be an observed covariate matrix of dimension <span class="math inline">\(N \times k_1\)</span>, <span class="math inline">\(X_2\)</span> be an observed covariate matrix of dimension <span class="math inline">\(N \times k_2\)</span>, <span class="math inline">\(X_{1i}\)</span> be the <span class="math inline">\(i\)</span>th row of <span class="math inline">\(X_1\)</span>, <span class="math inline">\(X_{2i}\)</span> be the <span class="math inline">\(i\)</span>th row of <span class="math inline">\(X_2\)</span>, <span class="math inline">\(\beta_1\)</span> be a coefficient vector of length <span class="math inline">\(k_1\)</span> and <span class="math inline">\(\beta_2\)</span> be a coefficient vector of length <span class="math inline">\(k_2\)</span>. Define the potentially unobserved (or latent) response for demand to be <span class="math display">\[y_{1i}^\star = X_{1i} \beta_1 + \epsilon_{1i}\]</span> and the potentially unobserved (or latent) supply to be <span class="math display">\[y_{2i}^\star = X_{2i} \beta_2 + \epsilon_{2i}.\]</span> Note the choice of demand being equation one and supply being equation two was arbitrary. Define the observed outcome to be <span class="math inline">\(y_{i}=min(y_{1i}^\star, y_{2i}^\star).\)</span> The pair of unobserved idiosyncratic discrepencies, <span class="math inline">\((\epsilon_{1i},\epsilon_{2i})\)</span>, is distributed independently and identically multivariate normal with means <span class="math inline">\(E[\epsilon_{1i}] = E[\epsilon_{2i}] = 0\)</span>, variances <span class="math inline">\(Var[\epsilon_{1i}] = \sigma_{11}\)</span>, <span class="math inline">\(Var[\epsilon_{2i}] = \sigma_{22}\)</span>, and covariance <span class="math inline">\(Cov(\epsilon_{1i},\epsilon_{2i}) = \sigma_{12}\)</span>. The covariates are assumed to be exogenous.</p>
+</div>
+<div id="estimation" class="section level2">
+<h2>Estimation</h2>
+<p>Let <span class="math inline">\(Y_{i}^\star\)</span> be the random variable for <span class="math inline">\(y_{i}^\star\)</span>, <span class="math inline">\(Y_{1i}^\star\)</span> be the random variable for <span class="math inline">\(y_{1i}^\star\)</span>, and <span class="math inline">\(Y_{2i}^\star\)</span> be the random variable for <span class="math inline">\(y_{2i}^\star\)</span>. Let <span class="math inline">\(f_Z\)</span> represent the density function of random variable (or random vector) <span class="math inline">\(Z\)</span>. Let <span class="math inline">\(\phi(z;\mu,\sigma^2) = \frac{1}{\sqrt{2\pi\sigma^2}}exp(-\frac{1}{2\sigma^2}(z-\mu)^2)\)</span> and <span class="math inline">\(\Phi(z;\mu,\sigma^2) = \int_{\infty}^z\phi(t;\mu,\sigma^2)dt\)</span>. The likelihood of the ith observation is <span class="math display">\[
+\begin{aligned}
+ L_i(\theta;y_i) &amp;= Pr(Y_i = Y_{1i}^\star)f_{Y_{1i}|Y_i = Y_{1i}^\star}(y_i) + Pr(Y_i = Y_{2i}^\star)f_{Y_{2i}|Y_i = Y_{2i}^\star}(y_i) \\
+  &amp;= Pr(Y_{1i}^\star &lt; Y_{2i}^\star)f_{Y_{1i}|Y_i = Y_{1i}^\star}(y_i) + Pr( Y_{1i}^\star \geq Y_{2i}^\star)f_{Y_{2i}|Y_i = Y_{2i}^\star}(y_i)\\
+  &amp;= \int_{y_i}^{\infty}f_{Y_{1i}^\star,Y_{2i}^\star}(y_i,t)dt + \int_{y_i}^{\infty}f_{Y_{1i}^\star,Y_{2i}^\star}(t,y_i)dt \\
+  &amp;= f_{Y_{1i}^\star}(y_i)\int_{y_i}^{\infty}f_{Y_{2i}^\star|Y_{1i}^\star = y_i}(t)dt + f_{Y_{2i}^\star}(y_i)\int_{y_i}^{\infty}f_{Y_{1i}^\star|Y_{2i}^\star = y_i}(t,y_i)dt\\
+  &amp;= \phi(y_i;X_{1i} \beta_1,\sigma_{11})(1-\Phi(y_i;X_{1i} \beta_1 + \frac{\sigma_{12}}{\sigma_{22}}(y_i-X_{2i} \beta_2),\sigma_{11} - \frac{\sigma_{12}^2}{ \sigma_{22}}) \\ 
+  &amp;+ \phi(y_i;X_{2i} \beta_2,\sigma_{22})(1-\Phi(y_i;X_{2i} \beta_2 + \frac{\sigma_{12}}{\sigma_{11}}(y_i-X_{1i} \beta_1),\sigma_{22} - \frac{\sigma_{12}^2}{ \sigma_{11}})
+\end{aligned}
+\]</span></p>
+<p>The parameters are estimated by maximum likelihood. This implmenetation (equivalently) minimizes the negative log likelihood.</p>
+<p>The covariance matrix <span class="math inline">\(\Sigma\)</span> belongs to positive-definite space which can cause numerical difficulties during maximization. Therefore the covariance matrix is transformed to an unrestricted 3-dimensional space by the following (invertible) transformation</p>
+<p><span class="math display">\[  g(\sigma_{11},\sigma_{22},\sigma_{12}) =\left[\begin{array}
+{c}
+ \eta_1 \\
+ \eta_2 \\
+ \eta_3
+\end{array}\right]  = 
+\left[\begin{array}
+{c}
+log(\sigma_{11})\\
+log(\sigma_{22})\\
+tanh^{-1}\left(\frac{\sigma_{12}}{\sqrt{\sigma_{11} \sigma_{22}}}\right)\end{array}\right]\]</span> with inverse <span class="math display">\[g^{-1}(\eta_1,\eta_2,\eta_3) = 
+\left[\begin{array}
+{c}
+ \sigma_{11} \\
+ \sigma_{22} \\
+ \sigma_{12}
+\end{array}\right]
+= 
+\left[\begin{array}
+{c}
+exp(\eta_{1})\\
+exp(\eta_{2})\\
+tan(\eta_{3})\sqrt{exp(\eta_{1} + \eta_{2})}\end{array}\right]
+\]</span></p>
+<p>The likelihood is maximized numerically with the optimr package.The default maximum likelihood algorithm is based off the Limited-memory Broyden Fletcher Goldfarb Shanno (L-BFGS-B) algorithm. See ?optimr for details. Arguments can be passed directly to optimr by including the arguments in a list passed as <code>control</code>.</p>
+<p>The derivatives are calculated numerically with numDeriv. However, the first derivative vector is available to the user as GradientDE.</p>
+<p>Model estimatation has numerical stability issues such as the possibility of an infinite likelihood and convergence of <span class="math inline">\(Corr(\epsilon_{1i},\epsilon_{2i})=\rho\)</span> to <span class="math inline">\(1\)</span> or <span class="math inline">\(-1\)</span>. The infinite likelihood problem has not been experienced by the authors, but a future release of Disequilibrium might address the problem using an integrated likelihood (Liu et. al. 2015). The convergence of <span class="math inline">\(\rho\)</span> to <span class="math inline">\(1\)</span> or <span class="math inline">\(-1\)</span> is a common problem and is shown in the example section in this vignette. A solution is to fix <span class="math inline">\(\rho\)</span> to a specified value (typically 0) (Goldfeld and Quandt 1978).</p>
+</div>
+<div id="inference" class="section level2">
+<h2>Inference</h2>
+<p>The uncertainty in the estimated parameters is quantified with standard frequentist asymptotic properties. Assuming the estimator satisfies regularity conditions the asymptotic distribution is <span class="math inline">\(\displaystyle \lim_{n\to\infty}\sqrt{n}(\hat\theta_n-\theta_0) \sim N(0,\Sigma_\theta)\)</span>. Where <span class="math inline">\(\Sigma_{\theta}/n\)</span> is estimated with <span class="math display">\[\hat\Sigma_{\theta}/n = \frac{d^2}{d\theta d\theta&#39;} l(theta;Y).\]</span></p>
+<p>The asymptotic distribution is for an estimator in a transformed unconstrained space. The asymptotic distribution for the natural constrained space is obtained using the delta method for a function with a multivariate input to a multivariate output (Poirier 1995, Thoerem 5.7.7).</p>
+</div>
+<div id="example" class="section level2">
+<h2>Example</h2>
+<p>One of the first analyses of markets in disequilibrium was Fair and Jaffee (1972). In this analysis they modeled the housing market using monthly observations from June 1959 to November 1969. The explanation of the analysis follows closely from Maddala (1983). The quantity transacted is <span class="math inline">\(y_t = HS_t\)</span> which is the number of housing starts in period <span class="math inline">\(t\)</span>. The demand equation consisted of three variables</p>
+<ul>
+<li><span class="math inline">\(T\)</span>: Time. A continuous valued time variable accounting for population growth and income trend</li>
+<li><span class="math inline">\(\sum_{i=1}^{t-1}HS_i\)</span>: Stock of houses. A sum of housing starts over all previous periods. Assuming initial stock is 0.</li>
+<li><span class="math inline">\(RM_{t-2}\)</span>: Mortgage rate lagged by two months.</li>
+</ul>
+<p>The supply equation consisted of four variables.</p>
+<ul>
+<li><span class="math inline">\(T\)</span>: Time. A continuous values time variable</li>
+<li><span class="math inline">\(DF6_{t-1}\)</span>: A six month moving average of <span class="math inline">\(DF_t\)</span>. <span class="math inline">\(DF_t\)</span> is the flow of private deposits into savings and loan associations (SLA) and mutual savings banks during period <span class="math inline">\(t\)</span>.</li>
+<li><span class="math inline">\(DHF3_{t-2}\)</span>: The flow of borrowings by the SLAs from the federal home-loan bank during month <span class="math inline">\(t\)</span>.</li>
+<li><span class="math inline">\(RM_{t-1}\)</span>: Mortgage rate lagged by one month.</li>
+</ul>
+<p>The mathematical formulation of the demand equation is</p>
+<p><span class="math display">\[y_{1t}^\star = \beta_{10} + \beta_{11}t + \beta_{12} \sum_{i=1}^{t-1}HS_i + \beta_{13}RM_{t-2} + \epsilon_{1t}\]</span> and the supply equation is</p>
+<p><span class="math display">\[y_{2t}^\star = \beta_{20} + \beta_{21}t + \beta_{22} DF6_{t-1} + \beta_{23} DHF3_{t-2} + \beta_{24} RM_{t-1} + \epsilon_{2t}\]</span>.</p>
+<p>The disequilbirum model can simply be estimated with <code>DE()</code>. A warning is given if <code>optimr()</code> does not converge.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" title="1"><span class="kw">library</span>(Disequilibrium)</a>
+<a class="sourceLine" id="cb1-2" title="2"><span class="kw">set.seed</span>(<span class="dv">1775</span>) <span class="co"># Semper Fi</span></a>
+<a class="sourceLine" id="cb1-3" title="3"><span class="kw">data</span>(fjdata)</a>
+<a class="sourceLine" id="cb1-4" title="4"></a>
+<a class="sourceLine" id="cb1-5" title="5">sfjdata =<span class="st"> </span><span class="kw">as.data.frame</span>(<span class="kw">scale</span>(fjdata))</a>
+<a class="sourceLine" id="cb1-6" title="6">mod1 =<span class="st"> </span><span class="kw">DE</span>(HS <span class="op">~</span><span class="st"> </span>T <span class="op">+</span><span class="st"> </span>HL1 <span class="op">+</span><span class="st"> </span>RML2 <span class="op">|</span><span class="st"> </span>T <span class="op">+</span><span class="st"> </span>DK16L1 <span class="op">+</span><span class="st"> </span>DH13L2 <span class="op">+</span><span class="st"> </span>RML1, <span class="dt">data =</span> sfjdata, <span class="dt">control =</span> <span class="kw">list</span>(<span class="dt">MaskRho =</span> <span class="dv">0</span>))</a></code></pre></div>
+<p>The output from DE contains the parameter estimates, hessian, the output from <code>optimr()</code>, and some other objects and attributes used in other functions.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" title="1"></a>
+<a class="sourceLine" id="cb2-2" title="2"><span class="co"># Parameter estimates</span></a>
+<a class="sourceLine" id="cb2-3" title="3">mod1<span class="op">$</span>par</a>
+<a class="sourceLine" id="cb2-4" title="4"><span class="co">#&gt; (Intercept)_1           T_1         HL1_1        RML2_1 (Intercept)_2 </span></a>
+<a class="sourceLine" id="cb2-5" title="5"><span class="co">#&gt;     1.9718349    -0.5383597    -1.1888604     0.9849348     0.1173622 </span></a>
+<a class="sourceLine" id="cb2-6" title="6"><span class="co">#&gt;           T_2      DK16L1_2      DH13L2_2        RML1_2 logVariance_1 </span></a>
+<a class="sourceLine" id="cb2-7" title="7"><span class="co">#&gt;    -0.3346614     1.0259739     0.5735028     0.3382510    -1.2235656 </span></a>
+<a class="sourceLine" id="cb2-8" title="8"><span class="co">#&gt; logVariance_2 </span></a>
+<a class="sourceLine" id="cb2-9" title="9"><span class="co">#&gt;    -0.6761193</span></a>
+<a class="sourceLine" id="cb2-10" title="10"><span class="co"># Likelihood hessian</span></a>
+<a class="sourceLine" id="cb2-11" title="11"><span class="kw">round</span>(mod1<span class="op">$</span>hessian,<span class="dv">2</span>)</a>
+<a class="sourceLine" id="cb2-12" title="12"><span class="co">#&gt;               (Intercept)_1   T_1 HL1_1 RML2_1 (Intercept)_2    T_2</span></a>
+<a class="sourceLine" id="cb2-13" title="13"><span class="co">#&gt; (Intercept)_1         49.25 28.83 29.33  -0.10         41.36  20.69</span></a>
+<a class="sourceLine" id="cb2-14" title="14"><span class="co">#&gt; T_1                   28.83 34.98 34.70  29.45         20.69  26.37</span></a>
+<a class="sourceLine" id="cb2-15" title="15"><span class="co">#&gt; HL1_1                 29.33 34.70 34.47  28.17         21.03  26.08</span></a>
+<a class="sourceLine" id="cb2-16" title="16"><span class="co">#&gt; RML2_1                -0.10 29.45 28.17  56.59         -3.00  21.96</span></a>
+<a class="sourceLine" id="cb2-17" title="17"><span class="co">#&gt; (Intercept)_2         41.36 20.69 21.03  -3.00        207.34 -22.35</span></a>
+<a class="sourceLine" id="cb2-18" title="18"><span class="co">#&gt; T_2                   20.69 26.37 26.08  21.96        -22.35 220.44</span></a>
+<a class="sourceLine" id="cb2-19" title="19"><span class="co">#&gt; DK16L1_2              30.37  9.45  9.56 -12.52        -33.86  31.45</span></a>
+<a class="sourceLine" id="cb2-20" title="20"><span class="co">#&gt; DH13L2_2               4.00  1.99  2.42   6.98         -3.97  13.70</span></a>
+<a class="sourceLine" id="cb2-21" title="21"><span class="co">#&gt; RML1_2                -2.60 22.38 21.55  41.07          2.63 148.33</span></a>
+<a class="sourceLine" id="cb2-22" title="22"><span class="co">#&gt; logVariance_1         -7.33 -5.02 -5.13  -1.46         -6.02  -2.77</span></a>
+<a class="sourceLine" id="cb2-23" title="23"><span class="co">#&gt; logVariance_2          6.71  3.17  3.24   0.51        -14.81  -7.15</span></a>
+<a class="sourceLine" id="cb2-24" title="24"><span class="co">#&gt;               DK16L1_2 DH13L2_2 RML1_2 logVariance_1 logVariance_2</span></a>
+<a class="sourceLine" id="cb2-25" title="25"><span class="co">#&gt; (Intercept)_1    30.37     4.00  -2.60         -7.33          6.71</span></a>
+<a class="sourceLine" id="cb2-26" title="26"><span class="co">#&gt; T_1               9.45     1.99  22.38         -5.02          3.17</span></a>
+<a class="sourceLine" id="cb2-27" title="27"><span class="co">#&gt; HL1_1             9.56     2.42  21.55         -5.13          3.24</span></a>
+<a class="sourceLine" id="cb2-28" title="28"><span class="co">#&gt; RML2_1          -12.52     6.98  41.07         -1.46          0.51</span></a>
+<a class="sourceLine" id="cb2-29" title="29"><span class="co">#&gt; (Intercept)_2   -33.86    -3.97   2.63         -6.02        -14.81</span></a>
+<a class="sourceLine" id="cb2-30" title="30"><span class="co">#&gt; T_2              31.45    13.70 148.33         -2.77         -7.15</span></a>
+<a class="sourceLine" id="cb2-31" title="31"><span class="co">#&gt; DK16L1_2        201.00   -69.18 -61.32         -4.37         -9.48</span></a>
+<a class="sourceLine" id="cb2-32" title="32"><span class="co">#&gt; DH13L2_2        -69.18   191.31  32.03         -0.41         -1.30</span></a>
+<a class="sourceLine" id="cb2-33" title="33"><span class="co">#&gt; RML1_2          -61.32    32.03 206.93          0.39          1.11</span></a>
+<a class="sourceLine" id="cb2-34" title="34"><span class="co">#&gt; logVariance_1    -4.37    -0.41   0.39          7.56          2.39</span></a>
+<a class="sourceLine" id="cb2-35" title="35"><span class="co">#&gt; logVariance_2    -9.48    -1.30   1.11          2.39         48.16</span></a></code></pre></div>
+<p>Notice the last three values for the parameter estimates are for <span class="math inline">\(\log(\sigma_{11})\)</span>, <span class="math inline">\(atanh(\rho)\)</span>, and <span class="math inline">\(\log(\sigma_{22})\)</span> if <code>MaskRho = FALSE</code> (or left unspecified). The last two values for the parameter estimates are for <span class="math inline">\(\log(\sigma_{11})\)</span> and <span class="math inline">\(\log(\sigma_{22})\)</span> if <code>MaskRho</code> is specified.</p>
+<p>Also notice the correlation parameter was fixed at 0 and the data was standardized. This model can be unstable if either of those two do not occur.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb3-1" title="1"><span class="co"># rho fixed to 0 and data not standardized</span></a>
+<a class="sourceLine" id="cb3-2" title="2">mod2 =<span class="st"> </span><span class="kw">DE</span>(HS <span class="op">~</span><span class="st"> </span>T <span class="op">+</span><span class="st"> </span>HL1 <span class="op">+</span><span class="st"> </span>RML2 <span class="op">|</span><span class="st"> </span>T <span class="op">+</span><span class="st"> </span>DK16L1 <span class="op">+</span><span class="st"> </span>DH13L2 <span class="op">+</span><span class="st"> </span>RML1, <span class="dt">data =</span> fjdata, <span class="dt">control =</span> <span class="kw">list</span>(<span class="dt">MaskRho =</span> <span class="dv">0</span>))</a>
+<a class="sourceLine" id="cb3-3" title="3"><span class="co">#&gt; Error in optim(par = par, fn = orig.fn, gr = orig.gr, method = method,  : </span></a>
+<a class="sourceLine" id="cb3-4" title="4"><span class="co">#&gt;   L-BFGS-B needs finite values of &#39;fn&#39;</span></a>
+<a class="sourceLine" id="cb3-5" title="5"><span class="co">#&gt; Warning in DE(HS ~ T + HL1 + RML2 | T + DK16L1 + DH13L2 + RML1, data =</span></a>
+<a class="sourceLine" id="cb3-6" title="6"><span class="co">#&gt; fjdata, : The optimization did not converge.</span></a>
+<a class="sourceLine" id="cb3-7" title="7"></a>
+<a class="sourceLine" id="cb3-8" title="8"><span class="co"># rho free and data not standardized (converges but hessian is not invertible)</span></a>
+<a class="sourceLine" id="cb3-9" title="9">mod3 =<span class="st"> </span><span class="kw">DE</span>(HS <span class="op">~</span><span class="st"> </span>T <span class="op">+</span><span class="st"> </span>HL1 <span class="op">+</span><span class="st"> </span>RML2 <span class="op">|</span><span class="st"> </span>T <span class="op">+</span><span class="st"> </span>DK16L1 <span class="op">+</span><span class="st"> </span>DH13L2 <span class="op">+</span><span class="st"> </span>RML1, <span class="dt">data =</span> fjdata, <span class="dt">control =</span> <span class="kw">list</span>(<span class="dt">MaskRho =</span> <span class="ot">FALSE</span>))</a>
+<a class="sourceLine" id="cb3-10" title="10"><span class="kw">solve</span>(mod3<span class="op">$</span>hessian)</a>
+<a class="sourceLine" id="cb3-11" title="11"><span class="co">#&gt; Error in solve.default(mod3$hessian): system is computationally singular: reciprocal condition number = 1.11499e-65</span></a>
+<a class="sourceLine" id="cb3-12" title="12"></a>
+<a class="sourceLine" id="cb3-13" title="13"><span class="co"># rho free and data standardized</span></a>
+<a class="sourceLine" id="cb3-14" title="14">mod4 =<span class="st"> </span><span class="kw">DE</span>(HS <span class="op">~</span><span class="st"> </span>T <span class="op">+</span><span class="st"> </span>HL1 <span class="op">+</span><span class="st"> </span>RML2 <span class="op">|</span><span class="st"> </span>T <span class="op">+</span><span class="st"> </span>DK16L1 <span class="op">+</span><span class="st"> </span>DH13L2 <span class="op">+</span><span class="st"> </span>RML1, <span class="dt">data =</span> sfjdata, <span class="dt">control =</span> <span class="kw">list</span>(<span class="dt">MaskRho =</span> <span class="ot">FALSE</span>))</a>
+<a class="sourceLine" id="cb3-15" title="15"><span class="co">#&gt; Warning in DE(HS ~ T + HL1 + RML2 | T + DK16L1 + DH13L2 + RML1, data =</span></a>
+<a class="sourceLine" id="cb3-16" title="16"><span class="co">#&gt; sfjdata, : The optimization did not converge.</span></a></code></pre></div>
+<p>It is reccomended to try many different starting values and choose the one that maximizes the likelihood. Note, this implementation minimizes the negative of the log likelihood. See Maddala and Nelson 1974 and for reccomendations for choosing starting values.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb4-1" title="1">NStartingValues =<span class="st"> </span><span class="dv">10</span></a>
+<a class="sourceLine" id="cb4-2" title="2">k =<span class="st"> </span><span class="kw">length</span>(mod1<span class="op">$</span>par)</a>
+<a class="sourceLine" id="cb4-3" title="3">startingvalues =<span class="st"> </span><span class="kw">matrix</span>(<span class="kw">rnorm</span>(NStartingValues <span class="op">*</span><span class="st"> </span>k,<span class="dv">0</span>,.<span class="dv">5</span>),NStartingValues,k)</a>
+<a class="sourceLine" id="cb4-4" title="4">startingvalues[,k <span class="op">-</span><span class="st"> </span><span class="kw">c</span>(<span class="dv">0</span>,<span class="dv">1</span>)] =<span class="st"> </span><span class="kw">abs</span>(startingvalues[,k <span class="op">-</span><span class="st"> </span><span class="kw">c</span>(<span class="dv">0</span>,<span class="dv">1</span>)]) <span class="op">+</span><span class="st"> </span><span class="dv">1</span></a>
+<a class="sourceLine" id="cb4-5" title="5">modelstorage =<span class="st"> </span><span class="kw">vector</span>(<span class="st">&quot;list&quot;</span>,NStartingValues <span class="op">+</span><span class="st"> </span><span class="dv">1</span>)</a>
+<a class="sourceLine" id="cb4-6" title="6">modelstorage[[<span class="dv">1</span>]] =<span class="st"> </span>mod1</a>
+<a class="sourceLine" id="cb4-7" title="7"></a>
+<a class="sourceLine" id="cb4-8" title="8"><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span>NStartingValues){</a>
+<a class="sourceLine" id="cb4-9" title="9">  modelstorage[[i<span class="op">+</span><span class="dv">1</span>]] =<span class="st"> </span><span class="kw">DE</span>(HS <span class="op">~</span><span class="st"> </span>T <span class="op">+</span><span class="st"> </span>HL1 <span class="op">+</span><span class="st"> </span>RML2 <span class="op">|</span><span class="st"> </span>T <span class="op">+</span><span class="st"> </span>DK16L1 <span class="op">+</span><span class="st"> </span>DH13L2 <span class="op">+</span><span class="st"> </span>RML1, <span class="dt">data =</span> sfjdata, <span class="dt">par =</span> startingvalues[i,], <span class="dt">control =</span> <span class="kw">list</span>(<span class="dt">MaskRho =</span> <span class="dv">0</span>))</a>
+<a class="sourceLine" id="cb4-10" title="10">}</a>
+<a class="sourceLine" id="cb4-11" title="11"><span class="co">#&gt; Warning in DE(HS ~ T + HL1 + RML2 | T + DK16L1 + DH13L2 + RML1, data =</span></a>
+<a class="sourceLine" id="cb4-12" title="12"><span class="co">#&gt; sfjdata, : The optimization did not converge.</span></a>
+<a class="sourceLine" id="cb4-13" title="13"></a>
+<a class="sourceLine" id="cb4-14" title="14">llhoodvalues =<span class="st"> </span><span class="kw">sapply</span>(modelstorage,<span class="cf">function</span>(x){x<span class="op">$</span>value})</a>
+<a class="sourceLine" id="cb4-15" title="15">convergedIndex =<span class="st"> </span><span class="kw">sapply</span>(modelstorage,<span class="cf">function</span>(x){x<span class="op">$</span>convergence}) <span class="op">==</span><span class="st"> </span><span class="dv">0</span></a>
+<a class="sourceLine" id="cb4-16" title="16"></a>
+<a class="sourceLine" id="cb4-17" title="17">finalmod =<span class="st"> </span>modelstorage[[<span class="kw">which</span>(llhoodvalues <span class="op">==</span><span class="st"> </span><span class="kw">min</span>(llhoodvalues[convergedIndex]))]]</a></code></pre></div>
+<p>The output from <code>DE()</code> can be summarised with the generic function <code>summary()</code> which calls the specific method for class DE. The function transforms the unrestricted covariance matrix back to the natural positive definite space. Standard errors are calculated with the delta method.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb5-1" title="1">sfinalmod =<span class="st"> </span><span class="kw">summary</span>(finalmod)</a>
+<a class="sourceLine" id="cb5-2" title="2"></a>
+<a class="sourceLine" id="cb5-3" title="3"><span class="kw">round</span>(sfinalmod,<span class="dv">3</span>)</a>
+<a class="sourceLine" id="cb5-4" title="4"><span class="co">#&gt;               Estimate Std. Error z value Pr(&gt;|z|)</span></a>
+<a class="sourceLine" id="cb5-5" title="5"><span class="co">#&gt; (Intercept)_1    1.972      0.738   2.671    0.008</span></a>
+<a class="sourceLine" id="cb5-6" title="6"><span class="co">#&gt; T_1             -0.529      9.144   0.058    0.954</span></a>
+<a class="sourceLine" id="cb5-7" title="7"><span class="co">#&gt; HL1_1           -1.198      8.611   0.139    0.889</span></a>
+<a class="sourceLine" id="cb5-8" title="8"><span class="co">#&gt; RML2_1           0.985      0.615   1.602    0.109</span></a>
+<a class="sourceLine" id="cb5-9" title="9"><span class="co">#&gt; (Intercept)_2    0.117      0.093   1.257    0.209</span></a>
+<a class="sourceLine" id="cb5-10" title="10"><span class="co">#&gt; T_2             -0.335      0.112   2.996    0.003</span></a>
+<a class="sourceLine" id="cb5-11" title="11"><span class="co">#&gt; DK16L1_2         1.026      0.087  11.801    0.000</span></a>
+<a class="sourceLine" id="cb5-12" title="12"><span class="co">#&gt; DH13L2_2         0.574      0.089   6.450    0.000</span></a>
+<a class="sourceLine" id="cb5-13" title="13"><span class="co">#&gt; RML1_2           1.403      0.111  12.658    0.000</span></a>
+<a class="sourceLine" id="cb5-14" title="14"><span class="co">#&gt; Variance_1      -0.710      0.464   1.530       NA</span></a>
+<a class="sourceLine" id="cb5-15" title="15"><span class="co">#&gt; Variance_2       0.509      0.135   3.763       NA</span></a></code></pre></div>
+<p>At the individual 5% level the parameters (Intercept)_1, T_2, DK16L1_2, DH13L2_2, RML1_2 are significant variables.</p>
+<p>Predictions can be made with the generic function <code>predict()</code> which calls the specific method for class DE. The function produces predictions for each of the two equations, the minimum of the two equations, and the probability that equation 1 is less than equation 2 which probability that equation 1 is the observed outcome. Note this probability does not account for estimation uncertainty (i.e. the probability is conditioned on the estimated parameters). Also note that all predictions are unconditional on the observed quantity. The argument <code>newdata</code> should be a data.frame with column names matching the variables specified in the formula of the DE function. If not provided, the data from the DE function will be used.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb6-1" title="1">pfinalmod =<span class="st"> </span><span class="kw">predict</span>(finalmod)</a>
+<a class="sourceLine" id="cb6-2" title="2"><span class="kw">round</span>(<span class="kw">head</span>(pfinalmod),<span class="dv">3</span>)</a>
+<a class="sourceLine" id="cb6-3" title="3"><span class="co">#&gt;     Y_1    Y_2 Min(Y_1,Y_2) Prob(Y_2&gt;Y_1)</span></a>
+<a class="sourceLine" id="cb6-4" title="4"><span class="co">#&gt; 1 4.082 -0.789       -0.789             0</span></a>
+<a class="sourceLine" id="cb6-5" title="5"><span class="co">#&gt; 2 4.066 -0.666       -0.666             0</span></a>
+<a class="sourceLine" id="cb6-6" title="6"><span class="co">#&gt; 3 4.017 -0.659       -0.659             0</span></a>
+<a class="sourceLine" id="cb6-7" title="7"><span class="co">#&gt; 4 3.985 -0.245       -0.245             0</span></a>
+<a class="sourceLine" id="cb6-8" title="8"><span class="co">#&gt; 5 4.206 -0.275       -0.275             0</span></a>
+<a class="sourceLine" id="cb6-9" title="9"><span class="co">#&gt; 6 4.156 -0.263       -0.263             0</span></a></code></pre></div>
+<p>The expected number of demand (equation 1) observations from the training data is <code>mean(pfinalmod[,4]) =</code> 0.17.</p>
+</div>
+<div id="extensions" class="section level2">
+<h2>Extensions</h2>
+<p>Disequilbrium has the ability to interface with the sandwich package. Robust standard errors can be easily used by specifying <code>robust = TRUE</code> in the <code>summary()</code> function. The usefulness of robust standard errors in non-linear models is unclear, use with caution (Freedman, 2006).</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb7-1" title="1">sfinalmodrob =<span class="st"> </span><span class="kw">summary</span>(finalmod, <span class="dt">robust =</span> T)</a>
+<a class="sourceLine" id="cb7-2" title="2"></a>
+<a class="sourceLine" id="cb7-3" title="3"><span class="kw">round</span>(sfinalmodrob,<span class="dv">3</span>)</a>
+<a class="sourceLine" id="cb7-4" title="4"><span class="co">#&gt;               Estimate Std. Error z value Pr(&gt;|z|)</span></a>
+<a class="sourceLine" id="cb7-5" title="5"><span class="co">#&gt; (Intercept)_1    1.972      0.484   4.071    0.000</span></a>
+<a class="sourceLine" id="cb7-6" title="6"><span class="co">#&gt; T_1             -0.529      7.706   0.069    0.945</span></a>
+<a class="sourceLine" id="cb7-7" title="7"><span class="co">#&gt; HL1_1           -1.198      7.382   0.162    0.871</span></a>
+<a class="sourceLine" id="cb7-8" title="8"><span class="co">#&gt; RML2_1           0.985      0.490   2.012    0.044</span></a>
+<a class="sourceLine" id="cb7-9" title="9"><span class="co">#&gt; (Intercept)_2    0.117      0.092   1.273    0.203</span></a>
+<a class="sourceLine" id="cb7-10" title="10"><span class="co">#&gt; T_2             -0.335      0.117   2.868    0.004</span></a>
+<a class="sourceLine" id="cb7-11" title="11"><span class="co">#&gt; DK16L1_2         1.026      0.104   9.829    0.000</span></a>
+<a class="sourceLine" id="cb7-12" title="12"><span class="co">#&gt; DH13L2_2         0.574      0.089   6.479    0.000</span></a>
+<a class="sourceLine" id="cb7-13" title="13"><span class="co">#&gt; RML1_2           1.403      0.177   7.937    0.000</span></a>
+<a class="sourceLine" id="cb7-14" title="14"><span class="co">#&gt; Variance_1      -0.710      0.160   4.443       NA</span></a>
+<a class="sourceLine" id="cb7-15" title="15"><span class="co">#&gt; Variance_2       0.509      0.084   6.049       NA</span></a></code></pre></div>
+<p>Other types of robust standard errors such as cluster robust standard errors can be obtained be using the sandwich package directly. Note the parameter space needs to be changed with the delta method to get standard errors for the covariance matrix in the natural positive definite space.</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb8-1" title="1"><span class="co">#Simulate some fake clusters</span></a>
+<a class="sourceLine" id="cb8-2" title="2">clusters =<span class="st"> </span><span class="kw">sample</span>(LETTERS,<span class="kw">nrow</span>(sfjdata),<span class="dt">replace =</span> T)</a>
+<a class="sourceLine" id="cb8-3" title="3"><span class="co">#Cluster standard errors in the unrestricted covariance space</span></a>
+<a class="sourceLine" id="cb8-4" title="4">vcov1 =<span class="st"> </span>sandwich<span class="op">::</span><span class="kw">vcovCL</span>(finalmod, <span class="dt">cluster =</span> clusters)</a>
+<a class="sourceLine" id="cb8-5" title="5"><span class="kw">round</span>(vcov1,<span class="dv">3</span>)</a>
+<a class="sourceLine" id="cb8-6" title="6"><span class="co">#&gt;               (Intercept)_1     T_1   HL1_1 RML2_1 (Intercept)_2    T_2</span></a>
+<a class="sourceLine" id="cb8-7" title="7"><span class="co">#&gt; (Intercept)_1         0.589  -1.825   1.029  0.406        -0.048 -0.016</span></a>
+<a class="sourceLine" id="cb8-8" title="8"><span class="co">#&gt; T_1                  -1.825  67.873 -63.089 -3.975         0.114 -0.095</span></a>
+<a class="sourceLine" id="cb8-9" title="9"><span class="co">#&gt; HL1_1                 1.029 -63.089  59.519  3.296        -0.063  0.107</span></a>
+<a class="sourceLine" id="cb8-10" title="10"><span class="co">#&gt; RML2_1                0.406  -3.975   3.296  0.428        -0.025 -0.004</span></a>
+<a class="sourceLine" id="cb8-11" title="11"><span class="co">#&gt; (Intercept)_2        -0.048   0.114  -0.063 -0.025         0.012  0.002</span></a>
+<a class="sourceLine" id="cb8-12" title="12"><span class="co">#&gt; T_2                  -0.016  -0.095   0.107 -0.004         0.002  0.009</span></a>
+<a class="sourceLine" id="cb8-13" title="13"><span class="co">#&gt; DK16L1_2             -0.045   0.091  -0.039 -0.024         0.006  0.000</span></a>
+<a class="sourceLine" id="cb8-14" title="14"><span class="co">#&gt; DH13L2_2             -0.019   0.560  -0.517 -0.035         0.001  0.002</span></a>
+<a class="sourceLine" id="cb8-15" title="15"><span class="co">#&gt; RML1_2                0.013  -0.012  -0.006  0.009        -0.001 -0.006</span></a>
+<a class="sourceLine" id="cb8-16" title="16"><span class="co">#&gt; logVariance_1         0.213  -0.637   0.370  0.133        -0.025 -0.003</span></a>
+<a class="sourceLine" id="cb8-17" title="17"><span class="co">#&gt; logVariance_2        -0.062   0.348  -0.275 -0.041         0.011 -0.002</span></a>
+<a class="sourceLine" id="cb8-18" title="18"><span class="co">#&gt;               DK16L1_2 DH13L2_2 RML1_2 logVariance_1 logVariance_2</span></a>
+<a class="sourceLine" id="cb8-19" title="19"><span class="co">#&gt; (Intercept)_1   -0.045   -0.019  0.013         0.213        -0.062</span></a>
+<a class="sourceLine" id="cb8-20" title="20"><span class="co">#&gt; T_1              0.091    0.560 -0.012        -0.637         0.348</span></a>
+<a class="sourceLine" id="cb8-21" title="21"><span class="co">#&gt; HL1_1           -0.039   -0.517 -0.006         0.370        -0.275</span></a>
+<a class="sourceLine" id="cb8-22" title="22"><span class="co">#&gt; RML2_1          -0.024   -0.035  0.009         0.133        -0.041</span></a>
+<a class="sourceLine" id="cb8-23" title="23"><span class="co">#&gt; (Intercept)_2    0.006    0.001 -0.001        -0.025         0.011</span></a>
+<a class="sourceLine" id="cb8-24" title="24"><span class="co">#&gt; T_2              0.000    0.002 -0.006        -0.003        -0.002</span></a>
+<a class="sourceLine" id="cb8-25" title="25"><span class="co">#&gt; DK16L1_2         0.009    0.001  0.002        -0.021         0.007</span></a>
+<a class="sourceLine" id="cb8-26" title="26"><span class="co">#&gt; DH13L2_2         0.001    0.009 -0.001        -0.006         0.002</span></a>
+<a class="sourceLine" id="cb8-27" title="27"><span class="co">#&gt; RML1_2           0.002   -0.001  0.007         0.001         0.002</span></a>
+<a class="sourceLine" id="cb8-28" title="28"><span class="co">#&gt; logVariance_1   -0.021   -0.006  0.001         0.113        -0.031</span></a>
+<a class="sourceLine" id="cb8-29" title="29"><span class="co">#&gt; logVariance_2    0.007    0.002  0.002        -0.031         0.021</span></a>
+<a class="sourceLine" id="cb8-30" title="30"></a>
+<a class="sourceLine" id="cb8-31" title="31"><span class="co">#Cluster standard errors in the natural positive definite space</span></a>
+<a class="sourceLine" id="cb8-32" title="32">newpar =<span class="st"> </span><span class="kw">GetDeltaMethodParameters</span>(<span class="dt">mu =</span> finalmod<span class="op">$</span>par,<span class="dt">covmat =</span> vcov1, <span class="dt">MaskRho =</span> finalmod<span class="op">$</span>MaskRho)</a>
+<a class="sourceLine" id="cb8-33" title="33">vcov2 =<span class="st"> </span>newpar<span class="op">$</span>covmat</a>
+<a class="sourceLine" id="cb8-34" title="34"><span class="kw">round</span>(vcov2,<span class="dv">3</span>)</a>
+<a class="sourceLine" id="cb8-35" title="35"><span class="co">#&gt;               (Intercept)_1     T_1   HL1_1 RML2_1 (Intercept)_2    T_2</span></a>
+<a class="sourceLine" id="cb8-36" title="36"><span class="co">#&gt; (Intercept)_1         0.589  -1.825   1.029  0.406        -0.048 -0.016</span></a>
+<a class="sourceLine" id="cb8-37" title="37"><span class="co">#&gt; T_1                  -1.825  67.873 -63.089 -3.975         0.114 -0.095</span></a>
+<a class="sourceLine" id="cb8-38" title="38"><span class="co">#&gt; HL1_1                 1.029 -63.089  59.519  3.296        -0.063  0.107</span></a>
+<a class="sourceLine" id="cb8-39" title="39"><span class="co">#&gt; RML2_1                0.406  -3.975   3.296  0.428        -0.025 -0.004</span></a>
+<a class="sourceLine" id="cb8-40" title="40"><span class="co">#&gt; (Intercept)_2        -0.048   0.114  -0.063 -0.025         0.012  0.002</span></a>
+<a class="sourceLine" id="cb8-41" title="41"><span class="co">#&gt; T_2                  -0.016  -0.095   0.107 -0.004         0.002  0.009</span></a>
+<a class="sourceLine" id="cb8-42" title="42"><span class="co">#&gt; DK16L1_2             -0.045   0.091  -0.039 -0.024         0.006  0.000</span></a>
+<a class="sourceLine" id="cb8-43" title="43"><span class="co">#&gt; DH13L2_2             -0.019   0.560  -0.517 -0.035         0.001  0.002</span></a>
+<a class="sourceLine" id="cb8-44" title="44"><span class="co">#&gt; RML1_2                0.013  -0.012  -0.006  0.009        -0.001 -0.006</span></a>
+<a class="sourceLine" id="cb8-45" title="45"><span class="co">#&gt; Variance_1            0.063  -0.187   0.109  0.039        -0.007 -0.001</span></a>
+<a class="sourceLine" id="cb8-46" title="46"><span class="co">#&gt; Variance_2           -0.032   0.177  -0.140 -0.021         0.005 -0.001</span></a>
+<a class="sourceLine" id="cb8-47" title="47"><span class="co">#&gt;               DK16L1_2 DH13L2_2 RML1_2 Variance_1 Variance_2</span></a>
+<a class="sourceLine" id="cb8-48" title="48"><span class="co">#&gt; (Intercept)_1   -0.045   -0.019  0.013      0.063     -0.032</span></a>
+<a class="sourceLine" id="cb8-49" title="49"><span class="co">#&gt; T_1              0.091    0.560 -0.012     -0.187      0.177</span></a>
+<a class="sourceLine" id="cb8-50" title="50"><span class="co">#&gt; HL1_1           -0.039   -0.517 -0.006      0.109     -0.140</span></a>
+<a class="sourceLine" id="cb8-51" title="51"><span class="co">#&gt; RML2_1          -0.024   -0.035  0.009      0.039     -0.021</span></a>
+<a class="sourceLine" id="cb8-52" title="52"><span class="co">#&gt; (Intercept)_2    0.006    0.001 -0.001     -0.007      0.005</span></a>
+<a class="sourceLine" id="cb8-53" title="53"><span class="co">#&gt; T_2              0.000    0.002 -0.006     -0.001     -0.001</span></a>
+<a class="sourceLine" id="cb8-54" title="54"><span class="co">#&gt; DK16L1_2         0.009    0.001  0.002     -0.006      0.004</span></a>
+<a class="sourceLine" id="cb8-55" title="55"><span class="co">#&gt; DH13L2_2         0.001    0.009 -0.001     -0.002      0.001</span></a>
+<a class="sourceLine" id="cb8-56" title="56"><span class="co">#&gt; RML1_2           0.002   -0.001  0.007      0.000      0.001</span></a>
+<a class="sourceLine" id="cb8-57" title="57"><span class="co">#&gt; Variance_1      -0.006   -0.002  0.000      0.010     -0.005</span></a>
+<a class="sourceLine" id="cb8-58" title="58"><span class="co">#&gt; Variance_2       0.004    0.001  0.001     -0.005      0.005</span></a></code></pre></div>
+</div>
+<div id="future-work" class="section level2">
+<h2>Future work</h2>
+<p>There are many things that might be included in future releases such as a Bayesian implementetaiton, a p-value for a test of equilibrium, endogenous prices, distribution free maximum score estimation, and integrating the likelihood. For bug reports or feature requests please contact the maintainter listed on CRAN.</p>
+</div>
+<div id="bibliography" class="section level2">
+<h2>Bibliography</h2>
+<p>Fair, Ray C., and Dwight M. Jaffee. “Methods of estimation for markets in disequilibrium.” Econometrica: Journal of the Econometric Society (1972): 497-514.</p>
+<p>Freedman, David A. “On the so-called “Huber sandwich estimator” and “robust standard errors”.&quot; The American Statistician 60.4 (2006): 299-302.</p>
+<p>Goldfeld, Stephen M., and Richard E. Quandt. “Some properties of the simple disequilibrium model with covariance.” Economics Letters 1.4 (1978): 343-346.</p>
+<p>Gourieroux, Christian. Econometrics of qualitative dependent variables. Cambridge university press, 2000.</p>
+<p>Hendry, David F. “Comment whither disequilibrium econometrics?.” (1982): 65-70.</p>
+<p>Laroque, Guy, and Bernard Salanié. “Estimating the canonical disequilibrium model: Asymptotic theory and finite sample properties.” Journal of Econometrics 62.2 (1994): 165-210.</p>
+<p>Liu, Shiyao, Huaiqing Wu, and William Q. Meeker. “Understanding and addressing the unbounded “likelihood” problem.&quot; The American Statistician 69.3 (2015): 191-200.</p>
+<p>Maddala, Gangadharrao S., and Forrest D. Nelson. “Maximum likelihood methods for models of markets in disequilibrium.” Econometrica: Journal of the Econometric Society (1974): 1013-1030.</p>
+<p>Maddala, Gangadharrao S. Limited-dependent and qualitative variables in econometrics. No. 3. Cambridge university press, 1986.</p>
+<p>Poirier, Dale J., and Paul A. Ruud. “On the appropriateness of endogenous switching.” Journal of Econometrics 16.2 (1981): 249-256.</p>
+<p>Poirier, Dale J. Intermediate statistics and econometrics: a comparative approach. Mit Press, 1995.</p>
+<p>Sapra, Sunil K. “Distribution-free estimation in a disequilibrium market model.” Economics Letters 22.1 (1986): 39-43.</p>
+</div>
+<div class="footnotes">
+<hr />
+<ol>
+<li id="fn1"><p>Calling this “Disequilibrium” econometrics is a bit of a misnomer. These models model the lack of market clearing condition. A market can not clear (i.e., supply does not equal demand) and still be in equilibrium or disequilibrium (Hendry, 1982).<a href="#fnref1" class="footnote-back">↩</a></p></li>
+</ol>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

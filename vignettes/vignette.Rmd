@@ -1,0 +1,248 @@
+---
+title: "Disequilibrium: Model for markets in disequilibrium"
+author: "Michael Guggisberg and Nate Latshaw"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Disequilibrium: Model for markets in disequilibrium}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE, cache = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  error = TRUE
+)
+```
+
+## Introduction
+
+The first study on a market in disequilibrium was Fair and Jaffee (1972) studying the supply and demand of housing starts. Soon followed many econometric refinements and extensions to the new field of disequilibrium econometrics (see the bibliography for small list).^[Calling this "Disequilibrium" econometrics is a bit of a misnomer. These models model the lack of market clearing condition. A market can not clear (i.e., supply does not equal demand) and still be in equilibrium or disequilibrium (Hendry, 1982).] Two good summaries of the literature are Maddala (1983) and Gourieroux (2000). Maddala and Nelson (1974) present Full Information Maximum Likelihood (FIML) estimators for four Disequilblirium models. This package currently supports estimating the first model. The model implemented in this package is not implemented in any other package currently on CRAN to the best knowledge of the authors. However, there are other packages to implement similar models such as sampleSelection, censReg, AER, and MCMCpack.
+
+The market in disequilibrium model is defined as follows.
+Let $i$ denote the $i$th observation which takes values from $1$
+to $N$, $X_1$ be an observed covariate matrix of dimension
+$N \times k_1$, $X_2$ be an observed covariate matrix of
+dimension $N \times k_2$, $X_{1i}$ be the $i$th
+row of $X_1$, $X_{2i}$ be the $i$th row of
+$X_2$, $\beta_1$ be a coefficient vector of length
+$k_1$ and $\beta_2$ be a coefficient vector of length
+$k_2$. Define the potentially unobserved (or latent) response for demand to be
+$$y_{1i}^\star = X_{1i} \beta_1 + \epsilon_{1i}$$
+and the potentially unobserved (or latent) supply to be
+$$y_{2i}^\star = X_{2i} \beta_2 + \epsilon_{2i}.$$
+Note the choice of demand being equation one and supply being equation two was arbitrary. Define the observed outcome to be
+$y_{i}=min(y_{1i}^\star, y_{2i}^\star).$ The pair of unobserved idiosyncratic discrepencies,
+ $(\epsilon_{1i},\epsilon_{2i})$, is distributed independently
+ and identically multivariate normal with means
+ $E[\epsilon_{1i}] = E[\epsilon_{2i}] = 0$,
+ variances
+ $Var[\epsilon_{1i}] = \sigma_{11}$, $Var[\epsilon_{2i}] = \sigma_{22}$,
+ and covariance
+ $Cov(\epsilon_{1i},\epsilon_{2i}) = \sigma_{12}$. The covariates are assumed to be exogenous.
+
+## Estimation
+
+Let $Y_{i}^\star$ be the random variable for $y_{i}^\star$, $Y_{1i}^\star$ be the random variable for $y_{1i}^\star$, and $Y_{2i}^\star$ be the random variable for $y_{2i}^\star$. Let $f_Z$ represent the density function of random variable (or random vector) $Z$. Let $\phi(z;\mu,\sigma^2) = \frac{1}{\sqrt{2\pi\sigma^2}}exp(-\frac{1}{2\sigma^2}(z-\mu)^2)$ and $\Phi(z;\mu,\sigma^2) = \int_{\infty}^z\phi(t;\mu,\sigma^2)dt$. The likelihood of the ith observation is 
+$$
+\begin{aligned}
+ L_i(\theta;y_i) &= Pr(Y_i = Y_{1i}^\star)f_{Y_{1i}|Y_i = Y_{1i}^\star}(y_i) + Pr(Y_i = Y_{2i}^\star)f_{Y_{2i}|Y_i = Y_{2i}^\star}(y_i) \\
+  &= Pr(Y_{1i}^\star < Y_{2i}^\star)f_{Y_{1i}|Y_i = Y_{1i}^\star}(y_i) + Pr( Y_{1i}^\star \geq Y_{2i}^\star)f_{Y_{2i}|Y_i = Y_{2i}^\star}(y_i)\\
+  &= \int_{y_i}^{\infty}f_{Y_{1i}^\star,Y_{2i}^\star}(y_i,t)dt + \int_{y_i}^{\infty}f_{Y_{1i}^\star,Y_{2i}^\star}(t,y_i)dt \\
+  &= f_{Y_{1i}^\star}(y_i)\int_{y_i}^{\infty}f_{Y_{2i}^\star|Y_{1i}^\star = y_i}(t)dt + f_{Y_{2i}^\star}(y_i)\int_{y_i}^{\infty}f_{Y_{1i}^\star|Y_{2i}^\star = y_i}(t,y_i)dt\\
+  &= \phi(y_i;X_{1i} \beta_1,\sigma_{11})(1-\Phi(y_i;X_{1i} \beta_1 + \frac{\sigma_{12}}{\sigma_{22}}(y_i-X_{2i} \beta_2),\sigma_{11} - \frac{\sigma_{12}^2}{ \sigma_{22}}) \\ 
+  &+ \phi(y_i;X_{2i} \beta_2,\sigma_{22})(1-\Phi(y_i;X_{2i} \beta_2 + \frac{\sigma_{12}}{\sigma_{11}}(y_i-X_{1i} \beta_1),\sigma_{22} - \frac{\sigma_{12}^2}{ \sigma_{11}})
+\end{aligned}
+$$
+
+The parameters are estimated by maximum likelihood. This implmenetation (equivalently) minimizes the negative log likelihood.
+
+The covariance matrix $\Sigma$ belongs to positive-definite space which can cause numerical difficulties during maximization. Therefore the covariance matrix is transformed to an unrestricted 3-dimensional space by the following (invertible) transformation
+
+$$  g(\sigma_{11},\sigma_{22},\sigma_{12}) =\left[\begin{array}
+{c}
+ \eta_1 \\
+ \eta_2 \\
+ \eta_3
+\end{array}\right]  = 
+\left[\begin{array}
+{c}
+log(\sigma_{11})\\
+log(\sigma_{22})\\
+tanh^{-1}\left(\frac{\sigma_{12}}{\sqrt{\sigma_{11} \sigma_{22}}}\right)\end{array}\right]$$
+with inverse $$g^{-1}(\eta_1,\eta_2,\eta_3) = 
+\left[\begin{array}
+{c}
+ \sigma_{11} \\
+ \sigma_{22} \\
+ \sigma_{12}
+\end{array}\right]
+= 
+\left[\begin{array}
+{c}
+exp(\eta_{1})\\
+exp(\eta_{2})\\
+tan(\eta_{3})\sqrt{exp(\eta_{1} + \eta_{2})}\end{array}\right]
+$$
+
+The likelihood is maximized numerically with the optimr package.The default maximum likelihood algorithm is based off the Limited-memory Broyden Fletcher Goldfarb Shanno (L-BFGS-B) algorithm. See ?optimr for details. Arguments can be passed directly to optimr by including the arguments in a list passed as `control`.
+
+
+The derivatives are calculated numerically with numDeriv. However, the first derivative vector is available to the user as GradientDE.
+
+Model estimatation has numerical stability issues such as the possibility of an infinite likelihood and convergence of $Corr(\epsilon_{1i},\epsilon_{2i})=\rho$ to $1$ or $-1$. The infinite likelihood problem has not been experienced by the authors, but a future release of Disequilibrium might address the problem using an integrated likelihood (Liu et. al. 2015). The convergence of $\rho$ to $1$ or $-1$ is a common problem and is shown in the example section in this vignette. A solution is to fix $\rho$ to a specified value (typically 0) (Goldfeld and Quandt 1978). 
+
+## Inference
+
+The uncertainty in the estimated parameters is quantified with standard frequentist asymptotic properties. Assuming the estimator satisfies regularity conditions the asymptotic distribution is $\displaystyle \lim_{n\to\infty}\sqrt{n}(\hat\theta_n-\theta_0) \sim N(0,\Sigma_\theta)$. Where $\Sigma_{\theta}/n$ is estimated with  $$\hat\Sigma_{\theta}/n = \frac{d^2}{d\theta d\theta'} l(theta;Y).$$
+
+The asymptotic distribution is for an estimator in a transformed unconstrained space. The asymptotic distribution for the natural constrained space is obtained using the delta method for a function with a multivariate input to a multivariate output (Poirier 1995, Thoerem 5.7.7).
+
+## Example
+
+One of the first analyses of markets in disequilibrium was Fair and Jaffee (1972). In this analysis they modeled the housing market using monthly observations from June 1959 to November 1969. The explanation of the analysis follows closely from Maddala (1983). The quantity transacted is $y_t = HS_t$ which is the number of housing starts in period $t$. The demand equation consisted of three variables
+
+* $T$: Time. A continuous valued time variable accounting for population growth and income trend
+* $\sum_{i=1}^{t-1}HS_i$: Stock of houses. A sum of housing starts over all previous periods. Assuming initial stock is 0.
+* $RM_{t-2}$: Mortgage rate lagged by two months.
+
+The supply equation consisted of four variables.
+
+* $T$: Time. A continuous values time variable
+* $DF6_{t-1}$: A six month moving average of $DF_t$. $DF_t$ is the flow of private deposits into savings and loan associations (SLA) and mutual savings banks during period $t$. 
+* $DHF3_{t-2}$: The flow of borrowings by the SLAs from the federal home-loan bank during month $t$.
+* $RM_{t-1}$: Mortgage rate lagged by one month.
+
+The mathematical formulation of the demand equation is 
+
+$$y_{1t}^\star = \beta_{10} + \beta_{11}t + \beta_{12} \sum_{i=1}^{t-1}HS_i + \beta_{13}RM_{t-2} + \epsilon_{1t}$$
+and the supply equation is
+
+$$y_{2t}^\star = \beta_{20} + \beta_{21}t + \beta_{22} DF6_{t-1} + \beta_{23} DHF3_{t-2} + \beta_{24} RM_{t-1} + \epsilon_{2t}$$.
+
+The disequilbirum model can simply be estimated with `DE()`. A warning is given if `optimr()` does not converge.
+
+```{r, echo = T}
+library(Disequilibrium)
+set.seed(1775) # Semper Fi
+data(fjdata)
+
+sfjdata = as.data.frame(scale(fjdata))
+mod1 = DE(HS ~ T + HL1 + RML2 | T + DK16L1 + DH13L2 + RML1, data = sfjdata, control = list(MaskRho = 0))
+```
+
+The output from DE contains the parameter estimates, hessian, the output from `optimr()`, and some other objects and attributes used in other functions.
+
+```{r, echo = T}
+
+# Parameter estimates
+mod1$par
+# Likelihood hessian
+round(mod1$hessian,2)
+```
+Notice the last three values for the parameter estimates are for $\log(\sigma_{11})$, $atanh(\rho)$, and $\log(\sigma_{22})$ if `MaskRho = FALSE` (or left unspecified). The last two values for the parameter estimates are for $\log(\sigma_{11})$ and $\log(\sigma_{22})$ if `MaskRho` is specified.
+
+Also notice the correlation parameter was fixed at 0 and the data was standardized. This model can be unstable if either of those two do not occur.
+```{r, echo = T}
+# rho fixed to 0 and data not standardized
+mod2 = DE(HS ~ T + HL1 + RML2 | T + DK16L1 + DH13L2 + RML1, data = fjdata, control = list(MaskRho = 0))
+
+# rho free and data not standardized (converges but hessian is not invertible)
+mod3 = DE(HS ~ T + HL1 + RML2 | T + DK16L1 + DH13L2 + RML1, data = fjdata, control = list(MaskRho = FALSE))
+solve(mod3$hessian)
+
+# rho free and data standardized
+mod4 = DE(HS ~ T + HL1 + RML2 | T + DK16L1 + DH13L2 + RML1, data = sfjdata, control = list(MaskRho = FALSE))
+
+```
+It is reccomended to try many different starting values and choose the one that maximizes the likelihood. Note, this implementation minimizes the negative of the log likelihood. See Maddala and Nelson 1974 and  for reccomendations for choosing starting values.
+```{r, echo = T}
+NStartingValues = 10
+k = length(mod1$par)
+startingvalues = matrix(rnorm(NStartingValues * k,0,.5),NStartingValues,k)
+startingvalues[,k - c(0,1)] = abs(startingvalues[,k - c(0,1)]) + 1
+modelstorage = vector("list",NStartingValues + 1)
+modelstorage[[1]] = mod1
+
+for(i in 1:NStartingValues){
+  modelstorage[[i+1]] = DE(HS ~ T + HL1 + RML2 | T + DK16L1 + DH13L2 + RML1, data = sfjdata, par = startingvalues[i,], control = list(MaskRho = 0))
+}
+
+llhoodvalues = sapply(modelstorage,function(x){x$value})
+convergedIndex = sapply(modelstorage,function(x){x$convergence}) == 0
+
+finalmod = modelstorage[[which(llhoodvalues == min(llhoodvalues[convergedIndex]))]]
+
+```
+
+The output from `DE()` can be summarised with the generic function `summary()` which calls the specific method for class DE. The function transforms the unrestricted covariance matrix back to the natural positive definite space. Standard errors are calculated with the delta method.
+
+```{r, echo =T}
+sfinalmod = summary(finalmod)
+
+round(sfinalmod,3)
+```
+At the individual 5% level the parameters `r paste(rownames(sfinalmod)[which(sfinalmod[,4]<0.05)],collapse = ", ")` are significant variables.
+
+Predictions can be made with the generic function `predict()` which calls the specific method for class DE. The function produces predictions for each of the two equations, the minimum of the two equations, and the probability that equation 1 is less than equation 2 which probability that equation 1 is the observed outcome. Note this probability does not account for estimation uncertainty (i.e. the probability is conditioned on the estimated parameters). Also note that all predictions are unconditional on the observed quantity. The argument `newdata` should be a data.frame with column names matching the variables specified in the formula of the DE function. If not provided, the data from the DE function will be used.
+
+```{r, echo =T}
+pfinalmod = predict(finalmod)
+round(head(pfinalmod),3)
+```
+
+The expected number of demand (equation 1) observations from the training data is `mean(pfinalmod[,4]) =` `r round(mean(pfinalmod[,4]),2)`.
+
+## Extensions
+Disequilbrium has the ability to interface with the sandwich package. Robust standard errors can be easily used by specifying `robust = TRUE` in the `summary()` function. The usefulness of robust standard errors in non-linear models is unclear, use with caution (Freedman, 2006).
+
+```{r, echo = T}
+sfinalmodrob = summary(finalmod, robust = T)
+
+round(sfinalmodrob,3)
+```
+Other types of robust standard errors such as cluster robust standard errors can be obtained be using the sandwich package directly. Note the parameter space needs to be changed with the delta method to get standard errors for the covariance matrix in the natural positive definite space.
+
+```{r, echo = T, error = F}
+#Simulate some fake clusters
+clusters = sample(LETTERS,nrow(sfjdata),replace = T)
+#Cluster standard errors in the unrestricted covariance space
+vcov1 = sandwich::vcovCL(finalmod, cluster = clusters)
+round(vcov1,3)
+
+#Cluster standard errors in the natural positive definite space
+newpar = GetDeltaMethodParameters(mu = finalmod$par,covmat = vcov1, MaskRho = finalmod$MaskRho)
+vcov2 = newpar$covmat
+round(vcov2,3)
+```
+
+## Future work
+There are many things that might be included in future releases such as a Bayesian implementetaiton, a p-value for a test of equilibrium, endogenous prices, distribution free maximum score estimation, and integrating the likelihood. For bug reports or feature requests please contact the maintainter listed on CRAN. 
+
+## Bibliography
+Fair, Ray C., and Dwight M. Jaffee. "Methods of estimation for markets in disequilibrium." Econometrica: Journal of the Econometric Society (1972): 497-514.
+
+Freedman, David A. "On the so-called “Huber sandwich estimator” and “robust standard errors”." The American Statistician 60.4 (2006): 299-302.
+
+Goldfeld, Stephen M., and Richard E. Quandt. "Some properties of the simple disequilibrium model with covariance." Economics Letters 1.4 (1978): 343-346.
+
+Gourieroux, Christian. Econometrics of qualitative dependent variables. Cambridge university press, 2000.
+
+Hendry, David F. "Comment whither disequilibrium econometrics?." (1982): 65-70.
+
+Laroque, Guy, and Bernard Salanié. "Estimating the canonical disequilibrium model: Asymptotic theory and finite sample properties." Journal of Econometrics 62.2 (1994): 165-210.
+
+Liu, Shiyao, Huaiqing Wu, and William Q. Meeker. "Understanding and addressing the unbounded “likelihood” problem." The American Statistician 69.3 (2015): 191-200.
+
+Maddala, Gangadharrao S., and Forrest D. Nelson. "Maximum likelihood methods for models of markets in disequilibrium." Econometrica: Journal of the Econometric Society (1974): 1013-1030.
+
+Maddala, Gangadharrao S. Limited-dependent and qualitative variables in econometrics. No. 3. Cambridge university press, 1986.
+
+Poirier, Dale J., and Paul A. Ruud. "On the appropriateness of endogenous switching." Journal of Econometrics 16.2 (1981): 249-256.
+
+Poirier, Dale J. Intermediate statistics and econometrics: a comparative approach. Mit Press, 1995.
+
+Sapra, Sunil K. "Distribution-free estimation in a disequilibrium market model." Economics Letters 22.1 (1986): 39-43.
+

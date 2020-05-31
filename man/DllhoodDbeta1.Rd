@@ -53,7 +53,7 @@ p1 = 2
 p2 = 2
 theta = c(beta01, beta02, log(SigmaX[1, 1]), atanh(SigmaX[1, 2]), log(SigmaX[2, 2]))
 mu = cbind(X[[1]] \%*\% theta[1:p1], X[[2]] \%*\% theta[(p1 + 1):(p1 + p2)])
-lhood = exp(-LLikelihoodDE(theta, Y, X, ensurePD = TRUE, summed = FALSE))
+lhood = exp(-nLLikelihoodDE(theta, Y, X, transformR3toPD = TRUE, summed = FALSE))
 
 d = DllhoodDbeta1(Y = Y, mu = mu, logsigma11 = theta[p1 + p2 + 1],
    logsigma22 = theta[p1 + p2 + 3], atanhrho = theta[p1 + p2 + 2], lhood = lhood, X1 = X1)
